@@ -1,0 +1,40 @@
+source_url: https://ppkl.menlhk.go.id/website/filebox/999/2107071507067.%20Lampiran%20VI%20Salinan%20PP%20Nomor%2022%20Tahun%202021.pdf
+reference: PP 22/2021, Appendix VI, I. Baku Mutu Air Sungai dan Sejenisnya
+verified_on: '2026-11-08'
+rules:
+  pH:
+    kind: range
+    unit: pH
+    limits: [[6, 9], [6, 9], [6, 9], [6, 9]]
+    table_entry: '5; page 1'
+    notes: Not applicable to naturally occurring peat water; applicability must be confirmed.
+  DO:
+    kind: minimum
+    unit: mg/L
+    limits: [6, 4, 3, 1]
+    table_entry: '8; page 2'
+    notes: Dissolved oxygen; lower bound is inclusive.
+  BOD:
+    kind: maximum
+    unit: mg/L
+    limits: [2, 3, 6, 12]
+    table_entry: '6; page 1'
+    notes: Biochemical oxygen demand; method comparability must be checked by source user.
+  COD:
+    kind: maximum
+    unit: mg/L
+    limits: [10, 25, 40, 80]
+    table_entry: '7; page 2'
+    notes: Chemical oxygen demand.
+  TSS:
+    kind: maximum
+    unit: mg/L
+    limits: [40, 50, 100, 400]
+    table_entry: '3; page 1'
+    notes: Total suspended solids; river section, not lake section.
+  NO3-N:
+    kind: maximum
+    unit: mg/L
+    limits: [10, 10, 20, 20]
+    table_entry: '11; page 2'
+    notes: Nitrate expressed as nitrogen only. No conversion from unspecified nitrate or nitrate-as-NO3.

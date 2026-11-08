@@ -1,0 +1,10 @@
+# Suggested aliases are implemented in src/aquainsight/mappings.py.
+# Verified Jakarta 2022/2023 CSV adapters are in src/aquainsight/official.py.
+# The fields below describe generic user-upload mappings.
+long_required: [site_id_or_site_name, parameter_original_name, value_raw]
+optional: [sample_date, unit_original, river_name, latitude, longitude, sample_id, qualifier]
+wide_format: Explicitly select measurement columns and assign each parameter and unit.
+dates: ISO preferred; ambiguous slash dates require explicit order.
+
+jakarta_2023: {site_id: titik_sampel, river_name: nama_sungai, value_raw: hasil_pengukuran, sample_month: [periode_data, bulan_sampling]}
+jakarta_2022: {site_id: titik_sampel, river_name: sungai, value_raw: hasil_pengukuran, unit_original: satuan, sample_month: bulan_sampling}
