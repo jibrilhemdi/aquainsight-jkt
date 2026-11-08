@@ -212,7 +212,7 @@ def test_jakarta_upload_uses_verified_layout():
     app.sidebar.radio[0].set_value("Overview").run(timeout=45)
     assert not app.exception and app.metric[0].value == "2"
     assert any("2023-02" in item.value for item in app.markdown)
-    assert any("USER-UPLOADED" in item.value for item in app.info)
+    assert any("USER-UPLOADED" in item.value for item in app.caption)
 
 
 @pytest.mark.parametrize("year", [2022, 2023])

@@ -104,7 +104,7 @@ def test_sparse_upload_without_dates_units_or_coordinates():
         assert not app.exception
     app.sidebar.radio[0].set_value("Overview").run()
     assert app.metric[0].value == "1"
-    assert any("No verified measurement dates" in item.value for item in app.markdown)
+    assert any("No verified measurement dates" in item.value for item in app.caption)
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -113,3 +113,38 @@ def test_empty_selection_all_views(page):
     app.sidebar.multiselect[1].set_value([])
     app.sidebar.radio[0].set_value(page).run()
     assert not app.exception
+
+
+@pytest.mark.parametrize("page", PAGES[:-1])
+def test_graph_views_defer_raw_tables(page):
+    app = demo_app()
+    app.sidebar.radio[0].set_value(page).run()
+    assert not app.exception
+    assert len(app.dataframe) == 0
+    if page == "Overview":
+        next(toggle for toggle in app.toggle if toggle.key == "records_overview").set_value(
+            True
+        ).run()
+        assert not app.exception and len(app.dataframe) == 1
+
+
+def test_exploration_views_and_parameter_switches():
+    app = demo_app()
+    app.sidebar.radio[0].set_value("Explore Measurements").run()
+    for view in ["Between rivers", "Across sites", "Across rounds"]:
+        next(radio for radio in app.radio if radio.label == "View").set_value(view).run()
+        assert not app.exception and len(app.get("plotly_chart")) >= 1
+    next(select for select in app.selectbox if select.label == "Parameter to explore").set_value(
+        "DO"
+    ).run()
+    assert not app.exception
+    assert len(app.dataframe) == 0
+
+
+def test_reference_gaps_are_explanations_not_violations():
+    app = demo_app()
+    app.sidebar.radio[0].set_value("Reference Thresholds & Flags").run()
+    assert not app.exception
+    assert any("Denominator:" in text.value for text in app.markdown)
+    assert any("pH has a natural peat-water exception" in text.value for text in app.caption)
+    assert app.metric[2].label == "Comparison unavailable"

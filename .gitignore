@@ -7,3 +7,10 @@ data/raw/*
 !data/raw/.gitkeep
 uploads/
 .DS_Store
+
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/

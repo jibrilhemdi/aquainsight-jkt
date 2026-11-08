@@ -27,6 +27,7 @@ Each row is one reported parameter reading; it is not necessarily a distinct phy
 | quality_note/date_issue/coordinate_issue | Human-readable parsing and validation diagnostics |
 | duplicate_candidate | Matching source/site/date/sample/parameter/raw value/unit; retained for review |
 | data_mode/data_notice | OFFICIAL, USER-UPLOADED or SYNTHETIC DEMO; explicit demo warning on exports |
+| reference_blocker | One primary machine-readable reason when comparison is unavailable; blank for comparable readings |
 | reference_* | Selected class, status/reason, inclusive limit/kind/unit, regulation URL and table entry |
 
 Parameter aliases: derajat keasaman → pH; oksigen terlarut → DO; kebutuhan oksigen biokimiawi → BOD; kebutuhan oksigen kimiawi → COD; padatan tersuspensi total → TSS; nitrat sebagai N → NO3-N. Unspecified nitrate is not assigned an N basis. Phosphate aliases do not imply total phosphorus and have no implemented reference rule.

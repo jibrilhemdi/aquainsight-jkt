@@ -35,3 +35,13 @@ CI is configured for Python 3.11/3.12 but was not executed on a remote runner du
 ## Missing metadata column fix
 
 The official adapter now restores its month/unit/provenance fields explicitly, aligning by original source-row identity rather than relying on the generic normalizer to pass those fields through. A regression test for each year removes these fields from the base normalizer output and confirms correct pH/BOD metadata after an excluded row. Official-data cache keys include the adapter schema version. Both local years and all views pass in the 73-test suite. The existing long-running Streamlit process was restarted to discard previously imported modules.
+
+## Graph-first redesign — 2026-11-09
+
+- `ruff check .`: passed.
+- `python -m pytest -q`: **86 passed**. Includes existing ingestion/official-data/threshold tests plus single-parameter/unit summaries, exact-reading-only distributions, compared-only percentage denominators, primary comparison blocker classification, threshold drawing with µg/L conversion, single-trace atlas without remote assets, graph-first pages with zero default tables, optional record-table loading and exploration view/parameter switching.
+- `python -m compileall -q app src`: passed.
+- `git diff --check`: passed; only data/raw/.gitkeep is tracked in the raw directory.
+- Streamlit restarted on localhost:8501 with the redesigned application.
+- Browser inventory is still empty. No screenshot, visual layout approval, measured browser loading speed or online CARTO tile delivery is claimed. The default atlas has no basemap requests by construction, verified in its figure specification.
+- Git baseline published to origin/main as d3d01e2; redesign is published as a separate tested milestone.

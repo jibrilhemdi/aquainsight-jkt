@@ -1,4 +1,4 @@
-# 💧 AquaInsight Jakarta
+# AquaInsight Jakarta
 
 An interactive Streamlit platform for **historical** river water-quality observations: explore samples, understand coverage, inspect data quality and compare safely against selected reference thresholds.
 
@@ -19,11 +19,11 @@ Open http://localhost:8501. Official CSVs load directly from `data/raw` without 
 
 ## Working views
 
-- **Overview:** observation/site/parameter counts, latest measurement date, date range and coverage charts.
-- **Explore Measurements:** date/river/site/parameter filters, marker-only Plotly time charts, site distributions with counts, searchable sortable records and filtered CSV.
-- **Reference Thresholds & Flags:** selected Class 1–4, verified max/min/range rules, explicit reasons and exportable outcomes.
-- **Sites & Map:** station coverage, date gaps and site inspection; maps require uploader-verified, valid, stable source coordinates.
-- **Data Quality & Sources:** original rows, retained/rejected records, missingness, date problems, duplicate candidates, unusual units and downloadable quality JSON.
+- **Overview:** one-parameter sampling-round distributions, medians/IQRs, explicit sample counts and river comparisons. Coverage and records are optional details.
+- **Explore Measurements:** individual sample points with period medians, river comparisons and a site-by-period heatmap. Filters and raw record viewers stay out of the way; filtered CSV remains available.
+- **Reference Thresholds & Flags:** compared-only outcome charts, visible selected limits and a separate explanation of unavailable comparisons. Percentages always print their comparable-reading denominator.
+- **Sites & Map:** a dark station atlas with one coordinate trace and no external basemap downloads, optional CARTO street context and site histories. Only valid, consistent source coordinates are mapped.
+- **Data Quality & Sources:** reading-usability and coverage charts, concise provenance, downloadable quality JSON and optional raw/diagnostic record viewers.
 - **Upload & Export:** CSV/XLSX sheet selection, bilingual column suggestions, editable long/wide mappings, encoding/date/decimal controls, normalized preview, filtered CSV and portable HTML monitoring report.
 
 The supplied **2023 file loads 10,911 measurements** (23 parameters, 120 site IDs), covering **February–September 2023** across four sampling months. **2022 loads 13,560 measurements** (30 parameters, 120 site IDs), covering **March–October 2022** across four months; 950 derived IP/status rows and two missing-parameter rows remain in excluded diagnostics. Exact sampling days are unavailable, so charts and filters use source months without invented dates. Both years load separately; cross-year method and station comparability is unverified.
@@ -55,13 +55,13 @@ At least site ID or name, parameter and value columns are required. Dates and un
 
 ## Interpret reference flags
 
-**Exploratory comparison against a selected reference class; not an official compliance finding.** Selecting a class establishes no legal designation. Rules cover pH, DO, BOD, COD, TSS and nitrate-as-N, transcribed from [PP 22/2021 Appendix VI, river section](https://ppkl.menlhk.go.id/website/filebox/999/2107071507067.%20Lampiran%20VI%20Salinan%20PP%20Nomor%2022%20Tahun%202021.pdf). Each rule has its source entry in `config/standards.yaml`. pH requires confirming the natural peat-water exception does not apply. Unit/basis mismatches, missing values and censored readings produce `not_evaluable` instead of alerts. No overall health index, forecasts or cause analysis.
+**Exploratory comparison against a selected reference class; not an official compliance finding.** Selecting a class establishes no legal designation. Rules cover pH, DO, BOD, COD, TSS and nitrate-as-N, transcribed from [PP 22/2021 Appendix VI, river section](https://ppkl.menlhk.go.id/website/filebox/999/2107071507067.%20Lampiran%20VI%20Salinan%20PP%20Nomor%2022%20Tahun%202021.pdf). Each rule has its source entry in `config/standards.yaml`. pH requires confirming the natural peat-water exception does not apply. Unit/basis mismatches, missing values and censored readings produce `not_evaluable` (displayed as **Comparison unavailable**) instead of alerts. Missing units, rules not configured in the app, chemical-basis gaps and pH applicability are explained separately. These are comparison-coverage gaps, not evidence of a reference failure. The percentage outside a reference excludes unavailable cases from its denominator. No overall health index, forecasts or cause analysis.
 
 ## Architecture and engineering
 
 `official` adapts the inspected Jakarta layouts; `ingestion` reads and expands input → `mappings`/`cleaning` normalize conservatively → `validation.Dataset` separates raw/retained/rejected records → `analytics`/`standards` compute explainable results → `visualization`/`reports` serve Plotly charts and escaped portable exports → `app/streamlit_app.py` presents six views.
 
-Typed reusable Python functions, file-change-aware official caching and immutable demo caching, raw-value/provenance retention, explicit ambiguity controls, safe unit conversion, guarded maps and independently testable threshold operations keep the app useful when input coverage is incomplete. No database, API keys or extra services are needed.
+Typed reusable Python functions, file-change-aware official caching and immutable demo caching, cached reference evaluation, deferred record rendering, raw-value/provenance retention, explicit ambiguity controls, safe unit conversion, guarded maps and independently testable threshold operations keep the app useful when input coverage is incomplete. No database, API keys or extra services are needed.
 
 ## Verify
 
@@ -73,3 +73,5 @@ python -m pytest -q
 Tests cover CSV/XLSX, wide conversion, numbers/dates, censoring, duplicates, coordinates, empty filters, counts, all reference classes, incompatible chemical bases, safe exports and all six Streamlit pages via AppTest. GitHub Actions runs lint and tests on Python 3.11/3.12. See [verification record](docs/VERIFICATION.md) for actual local results and browser limitations.
 
 Further details: [methodology](docs/METHODOLOGY.md), [dictionary](docs/DATA_DICTIONARY.md), [limitations](docs/LIMITATIONS.md), [milestones](docs/IMPLEMENTATION_PLAN.md). The actual local schemas are inspected and tested; exact sampling days, 2023 concentration units and cross-year measurement comparability remain unavailable. Highest-impact follow-up: obtain publisher unit/method metadata and resolve coordinate conflicts before adding any cross-year comparisons.
+
+Design rationale and chart interpretation: [DESIGN_NOTES.md](docs/DESIGN_NOTES.md). Git milestone workflow: [DEVELOPMENT.md](docs/DEVELOPMENT.md).
