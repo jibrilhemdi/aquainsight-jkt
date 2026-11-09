@@ -37,3 +37,7 @@ Each local year is loaded separately and labeled OFFICIAL based on the user's pr
 ## Graph-first presentation
 
 Round distributions, period medians, river median/IQR comparisons and site-period heatmaps use only exact readings from one parameter and one unit. Unknown units are labeled as source scale. Sampling periods are discrete; no continuous line or causal conclusion is introduced. Reference outcome percentages use comparable readings only, with comparison-coverage blockers plotted separately. The default station atlas is a tile-free coordinate layout; optional CARTO street context is the only basemap-tile path. See DESIGN_NOTES.md.
+
+## Dedicated year comparison
+
+Compare years retains separate source-year observations and gates pairing by canonical parameter, shared calendar month, identical explicit normalized unit and source-coordinate consistency (same ID/river, valid non-shared coordinates within 10 m across full datasets). Site-month medians and counts produce one paired difference per location. Missing units, unequal months, absent/qualified readings or location conflicts disable pairing. pH differences are absolute on the pH scale, never percentages. Methods remain unverified; full-year panels are descriptive only. See YEAR_COMPARISON.md.

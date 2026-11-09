@@ -50,7 +50,7 @@ Coordinates fall within latitude -6.370171 to -6.098833 and longitude 106.683389
 
 2023 has conflicting coordinates for CDG-7 and shared coordinate pairs involving BRN-1/BRN-2, CDG-6/CDG-7 and CLW3-1/CLW3-2. All six IDs are omitted from the map, including after sidebar filtering. 2022 has conflicting coordinates for CLW1-2 and a shared pair with CLW1-1; both IDs are omitted. Observations remain available in tables and analytics. Remaining markers show source-supplied coordinates, not geocoded or independently surveyed locations.
 
-Years remain separate. Identical site IDs and river names do not prove identical sampling locations, laboratory methods or chemical bases across years. No combined year-to-year trends are offered.
+Source years and provenance remain explicit. Identical IDs alone do not establish location or method equivalence. The Compare years workspace screens ID, river and coordinate consistency within 10 m, then uses shared calendar months and explicit units for descriptive pairing. August is the only common month; 112 IDs pass the source-location screen. pH can be paired; concentration deltas remain unavailable because 2023 units are missing. Full-year coverage remains descriptive. See YEAR_COMPARISON.md; no certified trend or causal interpretation is offered.
 
 ### File integrity
 

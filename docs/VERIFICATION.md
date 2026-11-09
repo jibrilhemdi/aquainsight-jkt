@@ -45,3 +45,10 @@ The official adapter now restores its month/unit/provenance fields explicitly, a
 - Streamlit restarted on localhost:8501 with the redesigned application.
 - Browser inventory is still empty. No screenshot, visual layout approval, measured browser loading speed or online CARTO tile delivery is claimed. The default atlas has no basemap requests by construction, verified in its figure specification.
 - Git baseline published to origin/main as d3d01e2; redesign is published as a separate tested milestone.
+
+## Dedicated year comparison — 2026-11-09
+
+- `ruff check .`: passed.
+- `python -m pytest -q`: **96 passed**. Added tests for month intersection, paired-site differences and counts, unverified/moved/absent/invalid coordinate rejection, full-source conflict checks before filtering, missing-unit delta suppression, unequal annual sampling windows, qualified readings, empty selections, same-site median reduction, actual local source counts, comparison-view controls/fallback and navigation back to single-year views.
+- The real files yield 112 consistent source locations and 112 exact pH pairs for August; BOD has no paired delta because 2023 units are missing. No pH percentage-change statistic is produced.
+- Browser visual verification remains unavailable; Streamlit AppTest verifies interactions and figure construction.

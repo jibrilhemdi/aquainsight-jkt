@@ -89,13 +89,9 @@ st.sidebar.markdown(
 )
 official_files = available_official_files()
 official_choices = {f"Official Jakarta {year}": path for year, path in official_files.items()}
-mode = st.sidebar.selectbox(
-    "Data source", [*official_choices, "Synthetic demo", "User upload"], key="data_source"
-)
-if "loaded_dataset" not in st.session_state:
-    st.session_state.loaded_dataset = None
 pages = [
     "Overview",
+    "Compare years",
     "Explore Measurements",
     "Reference Thresholds & Flags",
     "Sites & Map",
@@ -103,6 +99,16 @@ pages = [
     "Upload & Export",
 ]
 page = st.sidebar.radio("Workspace", pages)
+if page == "Compare years":
+    from aquainsight.comparison_ui import render_comparison
+
+    render_comparison(official_files, cached_official)
+    st.stop()
+mode = st.sidebar.selectbox(
+    "Data source", [*official_choices, "Synthetic demo", "User upload"], key="data_source"
+)
+if "loaded_dataset" not in st.session_state:
+    st.session_state.loaded_dataset = None
 if mode in official_choices:
     source_path = official_choices[mode]
     stat = source_path.stat()
@@ -146,7 +152,7 @@ if dataset is not None:
     )
     if dataset.metadata.get("date_precision", "").startswith("month"):
         st.caption(
-            "Sampling months only; exact days were not supplied. Years are explored separately because cross-year comparability is unverified."
+            "Sampling months only; exact days were not supplied. Use Compare years for an explicitly aligned view; cross-year method equivalence is unverified."
         )
 
 st.sidebar.divider()

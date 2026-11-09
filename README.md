@@ -20,13 +20,14 @@ Open http://localhost:8501. Official CSVs load directly from `data/raw` without 
 ## Working views
 
 - **Overview:** one-parameter sampling-round distributions, medians/IQRs, explicit sample counts and river comparisons. Coverage and records are optional details.
+- **Compare years:** 2022/2023 side-by-side distributions, shared-month/location matching, paired pH differences, coverage checks and comparison exports. August is the only shared calendar month; missing concentration units block concentration deltas.
 - **Explore Measurements:** individual sample points with period medians, river comparisons and a site-by-period heatmap. Filters and raw record viewers stay out of the way; filtered CSV remains available.
 - **Reference Thresholds & Flags:** compared-only outcome charts, visible selected limits and a separate explanation of unavailable comparisons. Percentages always print their comparable-reading denominator.
 - **Sites & Map:** a dark station atlas with one coordinate trace and no external basemap downloads, optional CARTO street context and site histories. Only valid, consistent source coordinates are mapped.
 - **Data Quality & Sources:** reading-usability and coverage charts, concise provenance, downloadable quality JSON and optional raw/diagnostic record viewers.
 - **Upload & Export:** CSV/XLSX sheet selection, bilingual column suggestions, editable long/wide mappings, encoding/date/decimal controls, normalized preview, filtered CSV and portable HTML monitoring report.
 
-The supplied **2023 file loads 10,911 measurements** (23 parameters, 120 site IDs), covering **February–September 2023** across four sampling months. **2022 loads 13,560 measurements** (30 parameters, 120 site IDs), covering **March–October 2022** across four months; 950 derived IP/status rows and two missing-parameter rows remain in excluded diagnostics. Exact sampling days are unavailable, so charts and filters use source months without invented dates. Both years load separately; cross-year method and station comparability is unverified.
+The supplied **2023 file loads 10,911 measurements** (23 parameters, 120 site IDs), covering **February–September 2023** across four sampling months. **2022 loads 13,560 measurements** (30 parameters, 120 site IDs), covering **March–October 2022** across four months; 950 derived IP/status rows and two missing-parameter rows remain in excluded diagnostics. Exact sampling days are unavailable, so charts and filters use source months without invented dates. The Compare years workspace loads both sources with explicit month/unit/location gates; cross-year laboratory-method equivalence remains unverified.
 
 2023 has no unit column. Its concentration units remain unknown and concentration reference comparisons are disabled; pH is intrinsically dimensionless. 2022 preserves and normalizes its explicit units. Maps show 114 (2023) or 118 (2022) source-coordinate locations after excluding conflicting/shared pairs. No station geocoding is used.
 
@@ -59,7 +60,7 @@ At least site ID or name, parameter and value columns are required. Dates and un
 
 ## Architecture and engineering
 
-`official` adapts the inspected Jakarta layouts; `ingestion` reads and expands input → `mappings`/`cleaning` normalize conservatively → `validation.Dataset` separates raw/retained/rejected records → `analytics`/`standards` compute explainable results → `visualization`/`reports` serve Plotly charts and escaped portable exports → `app/streamlit_app.py` presents six views.
+`official` adapts the inspected Jakarta layouts; `ingestion` reads and expands input → `mappings`/`cleaning` normalize conservatively → `validation.Dataset` separates raw/retained/rejected records → `analytics`/`standards` compute explainable results → `visualization`/`reports` serve Plotly charts and escaped portable exports → `app/streamlit_app.py` presents seven views, including the dedicated two-year comparison workspace.
 
 Typed reusable Python functions, file-change-aware official caching and immutable demo caching, cached reference evaluation, deferred record rendering, raw-value/provenance retention, explicit ambiguity controls, safe unit conversion, guarded maps and independently testable threshold operations keep the app useful when input coverage is incomplete. No database, API keys or extra services are needed.
 
@@ -70,8 +71,10 @@ ruff check .
 python -m pytest -q
 ```
 
-Tests cover CSV/XLSX, wide conversion, numbers/dates, censoring, duplicates, coordinates, empty filters, counts, all reference classes, incompatible chemical bases, safe exports and all six Streamlit pages via AppTest. GitHub Actions runs lint and tests on Python 3.11/3.12. See [verification record](docs/VERIFICATION.md) for actual local results and browser limitations.
+Tests cover CSV/XLSX, wide conversion, numbers/dates, censoring, duplicates, coordinates, empty filters, counts, all reference classes, incompatible chemical bases, safe exports and all seven Streamlit pages via AppTest. GitHub Actions runs lint and tests on Python 3.11/3.12. See [verification record](docs/VERIFICATION.md) for actual local results and browser limitations.
 
-Further details: [methodology](docs/METHODOLOGY.md), [dictionary](docs/DATA_DICTIONARY.md), [limitations](docs/LIMITATIONS.md), [milestones](docs/IMPLEMENTATION_PLAN.md). The actual local schemas are inspected and tested; exact sampling days, 2023 concentration units and cross-year measurement comparability remain unavailable. Highest-impact follow-up: obtain publisher unit/method metadata and resolve coordinate conflicts before adding any cross-year comparisons.
+Further details: [methodology](docs/METHODOLOGY.md), [dictionary](docs/DATA_DICTIONARY.md), [limitations](docs/LIMITATIONS.md), [milestones](docs/IMPLEMENTATION_PLAN.md). The actual local schemas are inspected and tested; exact sampling days, 2023 concentration units and cross-year measurement comparability remain unavailable. Highest-impact follow-up: obtain publisher unit/method metadata and resolve coordinate conflicts before enabling concentration deltas or claiming method-equivalent cross-year changes.
 
 Design rationale and chart interpretation: [DESIGN_NOTES.md](docs/DESIGN_NOTES.md). Git milestone workflow: [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+Use **Compare years** in the sidebar to compare both files without switching sources. It defaults to pH in August at the 112 source locations that pass the consistency screen. See [YEAR_COMPARISON.md](docs/YEAR_COMPARISON.md) for matching rules, graph interpretation and limitations.
