@@ -3,10 +3,8 @@ from io import BytesIO
 import pandas as pd
 import pytest
 
-from aquainsight import DEMO_WARNING
 from aquainsight.analytics import filter_observations, map_sites, site_coverage, summary
 from aquainsight.cleaning import parse_date, parse_number
-from aquainsight.demo import demo_frame, load_demo
 from aquainsight.ingestion import excel_sheets, normalize, read_file
 from aquainsight.reports import csv_bytes, monitoring_report, quality_json
 from aquainsight.standards import compare, load_standards
@@ -163,47 +161,43 @@ def test_ph_applicability_and_conversion():
     )
 
 
-def test_filters_counts_and_empty():
-    out = load_demo()
+def test_filters_counts_and_empty(observation_dataset):
+    out = observation_dataset
     stats = summary(out.observations)
-    assert stats["observations"] == 73 and stats["sites"] == 3 and stats["parameters"] == 6
-    assert stats["dated_site_visits"] == 12 and stats["identified_samples"] == 12
+    assert stats["observations"] == 10 and stats["sites"] == 2 and stats["parameters"] == 4
+    assert stats["dated_site_visits"] == 6 and stats["identified_samples"] == 7
     selected = filter_observations(
         out.observations,
-        sites=["DEMO-01"],
+        sites=["S1"],
         parameters=["BOD"],
-        dates=("2023-01-01", "2023-06-01"),
+        dates=("2023-01-01", "2023-02-28"),
         include_undated=False,
     )
-    assert len(selected) == 2
-    assert len(site_coverage(selected)) == 1
+    assert len(selected) == 2 and len(site_coverage(selected)) == 1
     empty = filter_observations(out.observations, sites=[])
-    assert summary(empty)["observations"] == 0
-    assert compare(empty, 1).empty
+    assert summary(empty)["observations"] == 0 and compare(empty, 1).empty
 
 
-def test_exports_labels_and_escaped_html():
-    dataset = load_demo()
-    df = filter_observations(dataset.observations, sites=["DEMO-01"])
+def test_exports_provenance_and_escaped_html(observation_dataset):
+    dataset = observation_dataset
+    df = filter_observations(dataset.observations, sites=["S1"])
     flags = compare(df, 3)
     html = monitoring_report(
         df,
         flags,
-        {"sites": ["DEMO-01"]},
+        {"sites": ["S1"]},
         {**dataset.metadata, "source_name": "<script>evil</script>"},
         3,
     )
-    assert DEMO_WARNING in html and "Class 3" in html and "DEMO-02" not in html
+    assert "Class 3" in html and "S2" not in html
     assert "<script>evil</script>" not in html and "&lt;script&gt;" in html
-    assert DEMO_WARNING in csv_bytes(df).decode("utf-8-sig")
-    assert DEMO_WARNING in quality_json(dataset)
+    assert dataset.metadata["source_url"] in html
+    assert "USER-UPLOADED" in quality_json(dataset)
     assert len(pd.read_csv(BytesIO(csv_bytes(df)))) == len(df)
     source = data().observations
     source.loc[0, "site_name"] = '=HYPERLINK("bad")'
     assert "'=HYPERLINK" in csv_bytes(source).decode("utf-8-sig")
     assert source.site_name.iloc[0].startswith("=")
-    reloaded = normalize(demo_frame(), META, decimal=".")
-    assert reloaded.observations.data_mode.eq("SYNTHETIC DEMO").all()
 
 
 def test_invalid_schema_and_empty_frame():
@@ -227,26 +221,27 @@ def test_stable_verified_coordinates_only():
     assert map_sites(obs).site_id.tolist() == ["b"]
 
 
-def test_canonical_roundtrip_provenance_and_empty_demo_exports():
-    dataset = load_demo()
-    content = csv_bytes(dataset.observations)
+def test_canonical_roundtrip_provenance_and_empty_exports(observation_dataset):
+    dataset = observation_dataset
     imported = normalize(
-        read_file(content, "roundtrip.csv"), {**META, "source_file": "roundtrip.csv"}, decimal="."
+        read_file(csv_bytes(dataset.observations), "roundtrip.csv"),
+        {**META, "source_file": "roundtrip.csv"},
+        decimal=".",
     )
     assert imported.observations.source_name.eq(dataset.metadata["source_name"]).all()
-    assert imported.observations.source_file.eq("synthetic_observations.csv").all()
+    assert imported.observations.source_file.eq("unit-input.csv").all()
     assert imported.observations.import_file.eq("roundtrip.csv").all()
-    assert imported.observations.qualifier.eq("censored").sum() == 2
-    assert imported.observations.sample_id.nunique() == 12
+    assert imported.observations.qualifier.eq("censored").sum() == 1
+    assert imported.observations.sample_id.nunique() == 7
     empty = filter_observations(dataset.observations, sites=[])
-    assert DEMO_WARNING in csv_bytes(empty).decode("utf-8-sig")
+    assert pd.read_csv(BytesIO(csv_bytes(empty))).empty
     flags = compare(empty, 1)
-    assert DEMO_WARNING in csv_bytes(flags).decode("utf-8-sig")
-    assert DEMO_WARNING in monitoring_report(empty, flags, {"sites": []}, META, 1)
+    assert pd.read_csv(BytesIO(csv_bytes(flags))).empty
+    assert "USER-UPLOADED" in monitoring_report(empty, flags, {"sites": []}, META, 1)
 
 
-def test_reimport_preserves_ambiguous_original_date():
-    original = load_demo()
+def test_reimport_preserves_ambiguous_original_date(observation_dataset):
+    original = observation_dataset
     imported = normalize(
         read_file(csv_bytes(original.observations), "again.csv"), META, decimal="."
     )
@@ -259,3 +254,13 @@ def test_reimport_preserves_ambiguous_original_date():
         imported.observations.source_row.astype(str).tolist()
         == original.observations.source_row.astype(str).tolist()
     )
+
+
+@pytest.mark.parametrize("mode", ["GENERATED", "UNKNOWN"])
+def test_unsupported_source_mode_is_rejected(mode):
+    frame = pd.DataFrame({"site_id": ["s"], "parameter": ["BOD"], "value": ["2"]})
+    with pytest.raises(ValueError, match="Unsupported data mode"):
+        normalize(frame, {**META, "data_mode": mode})
+    frame["data_mode"] = mode
+    with pytest.raises(ValueError, match="Unsupported data mode in file"):
+        normalize(frame, META)

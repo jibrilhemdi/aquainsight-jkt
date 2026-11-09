@@ -10,10 +10,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from aquainsight import DEMO_WARNING, DISCLAIMER
+from aquainsight import DISCLAIMER
 from aquainsight.analytics import filter_observations, map_sites, site_coverage, summary
-from aquainsight.demo import demo_frame, load_demo
-from aquainsight.ingestion import excel_sheets, normalize, read_file
+from aquainsight.ingestion import empty_observations, excel_sheets, normalize, read_file
 from aquainsight.mappings import ALIASES, suggest_mapping
 from aquainsight.official import (
     OFFICIAL_SCHEMA_VERSION,
@@ -70,11 +69,6 @@ h1 {font-weight:650 !important;font-size:2.4rem !important}
 
 
 @st.cache_data
-def cached_demo():
-    return load_demo()
-
-
-@st.cache_data
 def cached_official(path: str, size: int, modified_ns: int, schema_version: str):
     file = Path(path)
     year = identify_official_schema(read_file(file.read_bytes(), file.name))
@@ -104,10 +98,17 @@ if page == "Compare years":
 
     render_comparison(official_files, cached_official)
     st.stop()
-mode = st.sidebar.selectbox(
-    "Data source", [*official_choices, "Synthetic demo", "User upload"], key="data_source"
-)
+source_options = [*official_choices, "User upload"]
+if st.session_state.get("data_source") not in source_options:
+    st.session_state.pop("data_source", None)
+mode = st.sidebar.selectbox("Data source", source_options, key="data_source")
 if "loaded_dataset" not in st.session_state:
+    st.session_state.loaded_dataset = None
+loaded = st.session_state.loaded_dataset
+if loaded is not None and (
+    loaded.metadata.get("data_mode", "USER-UPLOADED") not in {"OFFICIAL", "USER-UPLOADED"}
+    or not loaded.observations.data_mode.isin(["OFFICIAL", "USER-UPLOADED"]).all()
+):
     st.session_state.loaded_dataset = None
 if mode in official_choices:
     source_path = official_choices[mode]
@@ -121,12 +122,14 @@ if mode in official_choices:
         st.error(f"Cannot load official data: {exc}")
         st.stop()
 else:
-    dataset = st.session_state.loaded_dataset if mode == "User upload" else cached_demo()
+    dataset = st.session_state.loaded_dataset
 if dataset is None:
-    st.info("No user dataset loaded. Open Upload & Export to preview and load a CSV or XLSX.")
+    st.info(
+        "No dataset loaded. Add the official CSV files to data/raw or open Upload & Export to load your monitoring observations."
+    )
     if page != "Upload & Export":
         st.stop()
-    df = cached_demo().observations.iloc[:0]
+    df = empty_observations()
 else:
     df = dataset.observations
 
@@ -135,12 +138,7 @@ st.title(page if page != "Overview" else "A closer look at Jakarta’s rivers.")
 st.caption(
     "Historical monitoring · measured variation, transparent comparisons · independent project"
 )
-is_demo = dataset is not None and (
-    dataset.metadata.get("data_mode") == "SYNTHETIC DEMO" or df.data_mode.eq("SYNTHETIC DEMO").any()
-)
-if is_demo:
-    st.warning(DEMO_WARNING)
-elif dataset is not None:
+if dataset is not None:
     st.caption(
         "OFFICIAL · Historical observations from the locally supplied Jakarta catalog export"
         if dataset.metadata.get("data_mode") == "OFFICIAL"
@@ -148,7 +146,7 @@ elif dataset is not None:
     )
 if dataset is not None:
     st.caption(
-        f"Dataset: {dataset.metadata.get('source_name', 'User upload')} · Mode: {'SYNTHETIC DEMO' if is_demo else dataset.metadata.get('data_mode', 'USER-UPLOADED')}"
+        f"Dataset: {dataset.metadata.get('source_name', 'User upload')} · Mode: {dataset.metadata.get('data_mode', 'USER-UPLOADED')}"
     )
     if dataset.metadata.get("date_precision", "").startswith("month"):
         st.caption(
@@ -223,6 +221,13 @@ def table(data: pd.DataFrame):
 
 def download(data: pd.DataFrame, label: str, name: str):
     st.download_button(label, csv_bytes(data), name, "text/csv")
+
+
+def activate_upload(preview):
+    """Reset filters before their widgets are recreated on the next script run."""
+    st.session_state.loaded_dataset = preview
+    for field in ["rivers", "sites", "parameters", "dates", "months"]:
+        st.session_state.pop(f"User upload_{field}", None)
 
 
 def graph(figure):
@@ -486,7 +491,7 @@ elif page == "Sites & Map":
         col.metric(label, f"{value:,}")
     if mapped.empty:
         st.info(
-            "Map omitted: no verified, valid and stable station coordinate pairs. Fictional demo stations have no coordinates."
+            "Map omitted: no verified, valid and stable station coordinate pairs are available."
         )
     else:
         st.subheader("Station atlas")
@@ -617,12 +622,6 @@ elif page == "Upload & Export":
         "Local Jakarta files in data/raw load automatically from the sidebar. You can also preview and load CSV/XLSX here; Jakarta 2022/2023 layouts are recognized."
     )
     uploaded = st.file_uploader("CSV or XLSX", type=["csv", "xlsx"])
-    st.download_button(
-        "Download labeled synthetic input example",
-        csv_bytes(demo_frame()),
-        "synthetic_observations.csv",
-        "text/csv",
-    )
     if uploaded is not None:
         try:
             content = uploaded.getvalue()
@@ -735,16 +734,12 @@ elif page == "Upload & Export":
                     st.error(
                         "No identifiable observations. Supply site identity and parameter mappings."
                     )
-                elif st.button("Load validated observations", type="primary"):
-                    st.session_state.loaded_dataset = preview
-                    for key in [
-                        "User upload_rivers",
-                        "User upload_sites",
-                        "User upload_parameters",
-                        "User upload_dates",
-                        "User upload_months",
-                    ]:
-                        st.session_state.pop(key, None)
+                elif st.button(
+                    "Load validated observations",
+                    type="primary",
+                    on_click=activate_upload,
+                    args=(preview,),
+                ):
                     st.success("Dataset loaded. Select User upload in the sidebar to explore it.")
         except (
             ValueError,

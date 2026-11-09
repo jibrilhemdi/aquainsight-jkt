@@ -22,7 +22,7 @@ Percent outside selected reference uses **only comparable readings** as denomina
 
 The default atlas is a dark, geographic coordinate scatter, implemented as one WebGL trace with fixed latitude/longitude aspect. It downloads no map tiles, GeoJSON or remote basemap. Its grid is a coordinate reference, not a claimed river network or boundary. Hover identifies the source station, river, address and observation count. Panning/zooming operates locally.
 
-An optional Street context view uses CARTO Dark Matter tiles and requires network access. The existing full-source coordinate conflict/shared-pair exclusions apply in both views. Locations are not independently surveyed. No geocoding or fictional river lines are used.
+An optional Street context view uses CARTO Dark Matter tiles and requires network access. The existing full-source coordinate conflict/shared-pair exclusions apply in both views. Locations are not independently surveyed. No geocoding or invented river lines are used.
 
 The product identity is a plain AquaInsight wordmark, restrained green/cream palette and monitoring favicon. The water emoji was removed.
 

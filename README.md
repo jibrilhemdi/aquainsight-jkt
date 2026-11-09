@@ -2,7 +2,7 @@
 
 An interactive Streamlit platform for **historical** river water-quality observations: explore samples, understand coverage, inspect data quality and compare safely against selected reference thresholds.
 
-**Default data: OFFICIAL Jakarta 2023**, when its downloaded CSV is present in `data/raw`. The sidebar also offers the official 2022 file, synthetic demo and user uploads. This is an independent portfolio project with no government or DHI endorsement. No live sensor monitoring or official compliance findings.
+**Default data: OFFICIAL Jakarta 2023**, when its downloaded CSV is present in `data/raw`. The sidebar also offers the official 2022 file and user-uploaded monitoring observations. This is an independent portfolio project with no government or DHI endorsement. No live sensor monitoring or official compliance findings.
 
 ## Run locally
 
@@ -15,7 +15,7 @@ python -m pip install -e '.[dev]'
 streamlit run app/streamlit_app.py
 ```
 
-Open http://localhost:8501. Official CSVs load directly from `data/raw` without runtime network requests; the demo is available when files are absent. Stop with Ctrl+C. Dependencies and build configuration are in `pyproject.toml`; `requirements-lock.txt` records the exact locally tested environment. Editable installation is required for the `src/` package and repository-relative configuration.
+Open http://localhost:8501. Official CSVs load directly from `data/raw` without runtime network requests. If files are absent, add the publisher downloads or load monitoring observations through Upload & Export; no observations are generated automatically. Stop with Ctrl+C. Dependencies and build configuration are in `pyproject.toml`. Editable installation is required for the `src/` package and repository-relative configuration.
 
 ## Working views
 
@@ -31,7 +31,6 @@ The supplied **2023 file loads 10,911 measurements** (23 parameters, 120 site ID
 
 2023 has no unit column. Its concentration units remain unknown and concentration reference comparisons are disabled; pH is intrinsically dimensionless. 2022 preserves and normalizes its explicit units. Maps show 114 (2023) or 118 (2022) source-coordinate locations after excluding conflicting/shared pairs. No station geocoding is used.
 
-The optional fictional fixture has **73 observations**, three fictional stations and six parameters, with verified parsed dates **2023-02-14 through 2023-12-12**. One ambiguous raw date remains undated. Missing/censored cases and a duplicate exercise the diagnostics; these are engineering cases, not findings about Jakarta.
 
 ## Load genuine observations
 
@@ -52,7 +51,7 @@ Minimal long input (illustrative schema, not actual monitoring observations):
 site_id,site_name,river_name,sample_date,parameter,value,unit
 ```
 
-At least site ID or name, parameter and value columns are required. Dates and units may be absent; month-only official observations use explicit sampling-month charts, while incompatible comparisons remain unavailable. Use ISO `YYYY-MM-DD` when possible. Keep nitrate-as-N (`NO3-N`) distinct from nitrate-as-NO3 (`NO3`). Preserve `<0.01` and `ND` as written. Re-importing the included demo preserves synthetic labels. Download an example directly in the app or use `data/demo/synthetic_observations.csv`.
+At least site ID or name, parameter and value columns are required. Dates and units may be absent; month-only official observations use explicit sampling-month charts, while incompatible comparisons remain unavailable. Use ISO `YYYY-MM-DD` when possible. Keep nitrate-as-N (`NO3-N`) distinct from nitrate-as-NO3 (`NO3`). Preserve `<0.01` and `ND` as written.
 
 ## Interpret reference flags
 
@@ -62,7 +61,7 @@ At least site ID or name, parameter and value columns are required. Dates and un
 
 `official` adapts the inspected Jakarta layouts; `ingestion` reads and expands input → `mappings`/`cleaning` normalize conservatively → `validation.Dataset` separates raw/retained/rejected records → `analytics`/`standards` compute explainable results → `visualization`/`reports` serve Plotly charts and escaped portable exports → `app/streamlit_app.py` presents seven views, including the dedicated two-year comparison workspace.
 
-Typed reusable Python functions, file-change-aware official caching and immutable demo caching, cached reference evaluation, deferred record rendering, raw-value/provenance retention, explicit ambiguity controls, safe unit conversion, guarded maps and independently testable threshold operations keep the app useful when input coverage is incomplete. No database, API keys or extra services are needed.
+Typed reusable Python functions, file-change-aware official caching, cached reference evaluation, deferred record rendering, raw-value/provenance retention, explicit ambiguity controls, safe unit conversion, guarded maps and independently testable threshold operations keep the app useful when input coverage is incomplete. No database, API keys or extra services are needed.
 
 ## Verify
 

@@ -5,16 +5,12 @@ from html import escape
 
 import pandas as pd
 
-from aquainsight import DEMO_WARNING, DISCLAIMER
+from aquainsight import DISCLAIMER
 from aquainsight.analytics import site_coverage, summary
 
 
 def csv_bytes(df: pd.DataFrame) -> bytes:
     out = df.copy()
-    if "data_mode" in out and out.data_mode.eq("SYNTHETIC DEMO").any():
-        out["data_notice"] = DEMO_WARNING
-    if out.empty and df.attrs.get("data_mode") == "SYNTHETIC DEMO":
-        out[DEMO_WARNING] = pd.Series(dtype=str)
     # Neutralize spreadsheet formulas in untrusted textual cells without modifying stored data.
     for col in out.select_dtypes(include=["object", "string"]).columns:
         out[col] = out[col].map(
@@ -33,9 +29,7 @@ def quality_json(dataset) -> str:
             "metadata": dataset.metadata,
             "quality": dataset.quality,
             "data_modes": sorted(dataset.observations.data_mode.unique().tolist()),
-            "notice": DEMO_WARNING
-            if dataset.observations.attrs.get("data_mode") == "SYNTHETIC DEMO"
-            else f"{dataset.observations.attrs.get('data_mode', 'USER-UPLOADED')} historical observations",
+            "notice": f"{dataset.observations.attrs.get('data_mode', 'USER-UPLOADED')} historical observations",
         },
         indent=2,
         default=str,
@@ -46,12 +40,7 @@ def quality_json(dataset) -> str:
 def monitoring_report(
     df: pd.DataFrame, flags: pd.DataFrame, filters: dict, metadata: dict, reference_class: int
 ) -> str:
-    notice = (
-        DEMO_WARNING
-        if df.attrs.get("data_mode") == "SYNTHETIC DEMO"
-        or metadata.get("data_mode") == "SYNTHETIC DEMO"
-        else f"{metadata.get('data_mode', 'USER-UPLOADED')} historical observations"
-    )
+    notice = f"{metadata.get('data_mode', 'USER-UPLOADED')} historical observations"
     stats = summary(df)
     sources = df[["source_name", "source_url", "source_file"]].drop_duplicates()
     return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>AquaInsight monitoring summary</title>

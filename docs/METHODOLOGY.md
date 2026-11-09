@@ -20,11 +20,11 @@ Measurement charts use discrete markers without interpolated lines. A shared axi
 
 Verified subset of PP 22/2021 Appendix VI **river** table only. Max/min/range comparisons are inclusive and tested for all four classes. Each result includes reason, rule unit, selected limit and table-entry URL. Only explicit µg/L to mg/L conversion is supported, retaining raw values and original units. pH accepts explicitly supplied pH/dimensionless unit and requires exception applicability confirmation. No inferred chemical-basis conversions; nitrate as NO3 and unknown nitrate have no rule. Censored, missing, ambiguous, incompatible and absent-rule cases are not_evaluable.
 
-Maps require exact source coordinates confirmed by uploader. Numeric pairs must fall in global ranges; multiple distinct coordinate pairs for a source/site cause that site to be omitted rather than averaged. Range validation cannot establish that coordinates truly belong to a Jakarta station. Demo data never maps. No geocoding is performed.
+Maps require exact source coordinates confirmed by uploader. Numeric pairs must fall in global ranges; multiple distinct coordinate pairs for a source/site cause that site to be omitted rather than averaged. Range validation cannot establish that coordinates truly belong to a Jakarta station. No geocoding is performed.
 
 ## Exports
 
-Filtered CSV retains normalized values, qualifiers, diagnostics, source and demo labels. Text cells that begin spreadsheet formula characters are prefixed with an apostrophe during CSV serialization only. HTML report is self-contained, escapes untrusted text, includes selected records, class, flags, source, active filters, coverage and limitations, with no remote scripts. JSON quality report describes the full loaded input. Uploads remain in memory. No causal attribution, forecasts, overall river-health score or compliance judgments are generated.
+Filtered CSV retains normalized values, qualifiers, diagnostics, source attribution. Text cells that begin spreadsheet formula characters are prefixed with an apostrophe during CSV serialization only. HTML report is self-contained, escapes untrusted text, includes selected records, class, flags, source, active filters, coverage and limitations, with no remote scripts. JSON quality report describes the full loaded input. Uploads remain in memory. No causal attribution, forecasts, overall river-health score or compliance judgments are generated.
 
 ## Verified Jakarta CSV adapters
 

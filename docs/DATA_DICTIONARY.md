@@ -17,7 +17,7 @@ Each row is one reported parameter reading; it is not necessarily a distinct phy
 | latitude_raw/longitude_raw/unit_basis_note | Raw coordinate strings and explanation of unit/basis handling |
 | sample_date | Parsed date at midnight; NaT if missing, ambiguous or invalid |
 | latitude, longitude | Numeric, paired global-range coordinates or null |
-| coordinates_verified | Uploader asserted exact source station coordinates; false for demo |
+| coordinates_verified | Source-supplied or uploader-confirmed station coordinates that pass consistency checks |
 | parameter_original_name | Source label |
 | parameter_code | Explicit bilingual alias or unchanged unknown name; chemical bases remain distinct |
 | value_raw | Source text, including censoring symbols and missing string |
@@ -26,7 +26,7 @@ Each row is one reported parameter reading; it is not necessarily a distinct phy
 | qualifier | exact, missing, censored, ambiguous, invalid, or preserved source qualifier |
 | quality_note/date_issue/coordinate_issue | Human-readable parsing and validation diagnostics |
 | duplicate_candidate | Matching source/site/date/sample/parameter/raw value/unit; retained for review |
-| data_mode/data_notice | OFFICIAL, USER-UPLOADED or SYNTHETIC DEMO; explicit demo warning on exports |
+| data_mode/data_notice | OFFICIAL or USER-UPLOADED; historical-observation source attribution retained in exports |
 | reference_blocker | One primary machine-readable reason when comparison is unavailable; blank for comparable readings |
 | reference_* | Selected class, status/reason, inclusive limit/kind/unit, regulation URL and table entry |
 

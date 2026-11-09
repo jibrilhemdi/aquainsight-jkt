@@ -122,13 +122,7 @@ def build_comparison(
         frames.append(scope)
     observations = pd.concat(frames, ignore_index=True)
     modes = set().union(*(set(frame.data_mode) for frame in years.values()))
-    mode = (
-        "SYNTHETIC DEMO"
-        if "SYNTHETIC DEMO" in modes
-        else "OFFICIAL"
-        if modes == {"OFFICIAL"}
-        else "USER-UPLOADED"
-    )
+    mode = "OFFICIAL" if modes == {"OFFICIAL"} else "USER-UPLOADED"
     observations.attrs = {
         "data_mode": mode,
         "comparison_scope": "Separate-year observations at consistent source locations; no inferred units/methods",

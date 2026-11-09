@@ -23,8 +23,8 @@ def sources():
         raw = pd.DataFrame(
             {
                 "site_id": ["A", "B", "A", "B"],
-                "site_name": ["Fictional A", "Fictional B"] * 2,
-                "river_name": ["Fictional river"] * 4,
+                "site_name": ["Test A", "Test B"] * 2,
+                "river_name": ["Test river"] * 4,
                 "parameter": ["pH"] * 4,
                 "value": ["7", "8", "7.2", "8.2"] if year == 2022 else ["7.5", "7.8", "7.4", "8.4"],
                 "unit": ["pH"] * 4,
@@ -37,10 +37,10 @@ def sources():
         result[year] = normalize(
             raw,
             {
-                "source_id": f"fictional-{year}",
-                "source_name": f"Fictional {year}",
+                "source_id": f"test-input-{year}",
+                "source_name": f"Test {year}",
                 "source_file": f"fixture-{year}.csv",
-                "source_url": "https://example.org/fictional",
+                "source_url": "https://example.org/test-input",
                 "coordinates_verified": True,
                 "data_mode": "USER-UPLOADED",
             },

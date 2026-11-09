@@ -31,7 +31,7 @@ def render_comparison(files, loader):
     )
     if not {2022, 2023}.issubset(files):
         st.info(
-            "Add both official 2022 and 2023 CSVs to data/raw to enable comparison. Single-year exploration and synthetic demo remain available in the sidebar."
+            "Add both official 2022 and 2023 CSVs to data/raw to enable comparison. Single-year exploration and uploads remain available in the sidebar."
         )
         return
     datasets = {}

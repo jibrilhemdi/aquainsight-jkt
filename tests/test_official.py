@@ -1,4 +1,4 @@
-"""Synthetic schema fixtures are distributable; local-file checks skip in CI."""
+"""Unit-level schema checks and integration checks against local official files."""
 
 from pathlib import Path
 
@@ -20,7 +20,7 @@ from aquainsight.visualization import coverage_chart, measurements
 
 
 def fixture(year):
-    # Entirely fictional values using the inspected source headers.
+    # Isolated test inputs using the inspected source headers.
     common = {
         "titik_sampel": ["FIXTURE-1"] * 2,
         "jenis_parameter": ["Kimia"] * 2,
@@ -29,13 +29,13 @@ def fixture(year):
         "hasil_pengukuran": ["2,5", "7,1"] if year == 2022 else ["2.5", "7.1"],
         "periode_data": [str(year)] * 2,
         "bulan_sampling": ["202203"] * 2 if year == 2022 else ["2"] * 2,
-        "alamat": ["Fictional site"] * 2,
+        "alamat": ["Test site"] * 2,
     }
     if year == 2022:
         common.update(
             tahun=["2022"] * 2,
             periode=["1"] * 2,
-            sungai=["Fictional river"] * 2,
+            sungai=["Test river"] * 2,
             lintang=["-6,2"] * 2,
             bujur=["106,8"] * 2,
             satuan=["mg L", "-"],
@@ -43,7 +43,7 @@ def fixture(year):
     else:
         common.update(
             periode_pemantauan=["Periode 1 (Musim Hujan)"] * 2,
-            nama_sungai=["Fictional river"] * 2,
+            nama_sungai=["Test river"] * 2,
             lintang_selatan=["-6.2"] * 2,
             bujur_timur=["106.8"] * 2,
         )
@@ -57,7 +57,7 @@ def test_verified_schema_months_units_and_provenance(year):
     assert identify_official_schema(raw) == year
     raw = read_file(raw.to_csv(index=False).encode("utf-8-sig"), "fixture.csv")
     result = normalize_official(
-        raw, year, {"data_mode": "USER-UPLOADED", "source_file": "synthetic_schema_fixture.csv"}
+        raw, year, {"data_mode": "USER-UPLOADED", "source_file": "schema-input.csv"}
     )
     obs = result.observations
     assert obs.sample_date.isna().all() and obs.sample_id.eq("").all()
@@ -166,7 +166,7 @@ def test_local_official_views(year):
     ]:
         app.sidebar.radio[0].set_value(page).run(timeout=45)
         assert not app.exception
-        assert not any("SYNTHETIC DEMO" in w.value for w in app.warning)
+        assert any("OFFICIAL" in c.value for c in app.caption)
     # Filtering by month must affect the visible counts, including the empty state.
     app.sidebar.multiselect[-1].set_value([])
     app.sidebar.radio[0].set_value("Overview").run(timeout=45)
@@ -193,7 +193,7 @@ def test_jakarta_upload_uses_verified_layout():
     app = AppTest.from_file(
         str(Path(__file__).resolve().parents[1] / "app" / "streamlit_app.py")
     ).run(timeout=45)
-    app.sidebar.selectbox[0].set_value("Synthetic demo")
+    app.sidebar.selectbox[0].set_value("User upload")
     app.sidebar.radio[0].set_value("Upload & Export")
     with patch(
         "streamlit.file_uploader",

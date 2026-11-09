@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pandas as pd
 
-from aquainsight import DEMO_WARNING
 from aquainsight.cleaning import normalize_unit, parse_date, parse_number, text
 from aquainsight.mappings import parameter_code, suggest_mapping
 from aquainsight.validation import Dataset, coordinate_pair
@@ -48,6 +47,15 @@ def normalize(
     decimal: str = "auto",
     date_order: str = "auto",
 ) -> Dataset:
+    mode = metadata.get("data_mode", "USER-UPLOADED")
+    if mode not in {"OFFICIAL", "USER-UPLOADED"}:
+        raise ValueError("Unsupported data mode. Import genuine historical observations.")
+    if "data_mode" in frame:
+        declared = {text(value) for value in frame["data_mode"]} - {""}
+        if not declared.issubset({"OFFICIAL", "USER-UPLOADED"}):
+            raise ValueError(
+                "Unsupported data mode in file. Import genuine historical observations."
+            )
     mapping = suggest_mapping(list(frame.columns)) if mapping is None else mapping
     if len(set(mapping.values())) != len(mapping):
         raise ValueError("Each source column can map to only one canonical field.")
@@ -72,10 +80,6 @@ def normalize(
         if wide:
             items = [(name, row[col], unit) for col, (name, unit) in wide.items()]
         for name, raw, unit in items:
-            original_mode = text(row.get("data_mode", ""))
-            mode = metadata.get("data_mode", "USER-UPLOADED")
-            if "SYNTHETIC" in original_mode or "SYNTHETIC" in text(row.get("data_notice", "")):
-                mode = "SYNTHETIC DEMO"
             record = dict(base)
             record.update(
                 parameter_original_name=text(name),
@@ -93,9 +97,7 @@ def normalize(
                         "source_name": metadata.get("source_name", ""),
                         "source_url": metadata.get("source_url", ""),
                         "data_mode": mode,
-                        "data_notice": DEMO_WARNING
-                        if mode == "SYNTHETIC DEMO"
-                        else "User-supplied historical observation",
+                        "data_notice": "Historical observation; source provenance retained",
                     }
                 )
                 continue
@@ -121,9 +123,7 @@ def normalize(
                 source_url=metadata.get("source_url", ""),
                 source_file=metadata.get("source_file", ""),
                 data_mode=mode,
-                data_notice=DEMO_WARNING
-                if mode == "SYNTHETIC DEMO"
-                else "Official historical observations; locally supplied catalog export"
+                data_notice="Official historical observations; locally supplied catalog export"
                 if mode == "OFFICIAL"
                 else "Historical observations; user-supplied provenance",
                 site_id=site_id,
@@ -150,8 +150,7 @@ def normalize(
                 ),
                 date_issue=date_note,
                 coordinate_issue=coord_note,
-                coordinates_verified=bool(metadata.get("coordinates_verified", False))
-                and mode != "SYNTHETIC DEMO",
+                coordinates_verified=bool(metadata.get("coordinates_verified", False)),
             )
             # Canonical re-imports retain original lineage as well as the new import file.
             for field in ["source_id", "source_name", "source_url", "source_file"]:
@@ -219,11 +218,7 @@ def normalize(
             "longitude_raw",
         ],
     )
-    obs.attrs["data_mode"] = (
-        "SYNTHETIC DEMO"
-        if metadata.get("data_mode") == "SYNTHETIC DEMO" or obs.data_mode.eq("SYNTHETIC DEMO").any()
-        else metadata.get("data_mode", "USER-UPLOADED")
-    )
+    obs.attrs["data_mode"] = mode
     obs["sample_date"] = pd.to_datetime(obs["sample_date"])
     obs["value_numeric"] = pd.to_numeric(obs["value_numeric"], errors="coerce")
     keys = [
@@ -261,3 +256,11 @@ def normalize(
         "policy": "All identified observations retained, including missing/invalid readings. Duplicate candidates are retained. Rejections lack site identity or parameter.",
     }
     return Dataset(frame.copy(deep=True), obs, pd.DataFrame(rejected), quality, dict(metadata))
+
+
+def empty_observations() -> pd.DataFrame:
+    """A typed zero-row canonical frame for the upload screen before data is loaded."""
+    return normalize(
+        pd.DataFrame(columns=["site_id", "parameter", "value"]),
+        {"data_mode": "USER-UPLOADED"},
+    ).observations

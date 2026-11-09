@@ -1,7 +1,6 @@
 import pytest
 
 from aquainsight.analytics import filter_observations, map_sites
-from aquainsight.demo import load_demo
 from aquainsight.insights import (
     blocker_counts,
     comparison_coverage,
@@ -18,27 +17,27 @@ from aquainsight.visualization import (
 )
 
 
-def focused():
-    return filter_observations(load_demo().observations, parameters=["BOD"])
+def focused(observation_dataset):
+    return filter_observations(observation_dataset.observations, parameters=["BOD"])
 
 
-def test_period_and_river_summary_do_not_mix_parameters_or_units():
-    data = focused()
+def test_period_and_river_summary_do_not_mix_parameters_or_units(observation_dataset):
+    data = focused(observation_dataset)
     stats = period_statistics(data)
     assert stats.n.sum() == data.qualifier.eq("exact").sum()
-    assert stats.iloc[0]["median"] == 5
+    assert stats.iloc[0]["median"] == 3.5
     assert stats.iloc[0].q1 <= stats.iloc[0]["median"] <= stats.iloc[0].q3
     groups = group_statistics(data)
     assert groups.n.sum() == data.qualifier.eq("exact").sum()
     with pytest.raises(ValueError, match="one parameter"):
-        period_statistics(load_demo().observations)
+        period_statistics(observation_dataset.observations)
     data.loc[data.index[0], "unit_normalized"] = "µg/L"
     with pytest.raises(ValueError, match="one unit"):
         group_statistics(data)
 
 
-def test_coverage_denominator_excludes_unavailable_comparisons():
-    data = focused().iloc[:3].copy()
+def test_coverage_denominator_excludes_unavailable_comparisons(observation_dataset):
+    data = focused(observation_dataset).iloc[:3].copy()
     data["value_numeric"] = [2, 7, float("nan")]
     data["qualifier"] = ["exact", "exact", "missing"]
     result = compare(data, 2)
@@ -59,11 +58,13 @@ def test_coverage_denominator_excludes_unavailable_comparisons():
     assert sum(blocker_counts(result).observations) == 3
 
 
-def test_blockers_distinguish_missing_units_rule_subset_and_context():
-    data = load_demo().observations.iloc[:3].copy()
+def test_blockers_distinguish_missing_units_rule_subset_and_context(observation_dataset):
+    data = observation_dataset.observations.iloc[:3].copy()
     data["parameter_code"] = ["unknown", "NO3", "pH"]
     data["parameter_original_name"] = ["unknown", "Nitrat", "pH"]
     data["unit_normalized"] = ["mg/L", "mg/L", "pH"]
+    data["qualifier"] = "exact"
+    data["value_numeric"] = [1.0, 2.0, 7.0]
     assert compare(data, 1).reference_blocker.tolist() == [
         "rule_not_configured",
         "chemical_basis_unknown",
@@ -74,8 +75,8 @@ def test_blockers_distinguish_missing_units_rule_subset_and_context():
     assert comparison_coverage(empty)["compared"] == 0
 
 
-def test_charts_preserve_sample_count_and_show_thresholds():
-    data = focused()
+def test_charts_preserve_sample_count_and_show_thresholds(observation_dataset):
+    data = focused(observation_dataset)
     chart = measurements(data)
     assert len(chart.data) <= 2  # no legend trace per station
     assert len(chart.data[0].x) == (data.sample_date.notna() & data.qualifier.eq("exact")).sum()
@@ -91,15 +92,15 @@ def test_charts_preserve_sample_count_and_show_thresholds():
     assert reference.layout.shapes[0].y1 == 3
 
 
-def test_atlas_is_one_coordinate_trace_without_remote_assets():
-    data = focused().copy()
-    data["latitude"] = data.site_id.map({"DEMO-01": -6.1, "DEMO-02": -6.2, "DEMO-03": -6.3})
-    data["longitude"] = data.site_id.map({"DEMO-01": 106.7, "DEMO-02": 106.8, "DEMO-03": 106.9})
+def test_atlas_is_one_coordinate_trace_without_remote_assets(observation_dataset):
+    data = focused(observation_dataset).copy()
+    data["latitude"] = data.site_id.map({"S1": -6.1, "S2": -6.2})
+    data["longitude"] = data.site_id.map({"S1": 106.7, "S2": 106.8})
     data["coordinates_verified"] = True
     sites = map_sites(data)
     fig = station_atlas(sites, data)
     assert len(fig.data) == 1 and fig.data[0].type == "scattergl"
-    assert len(fig.data[0].x) == 3
+    assert len(fig.data[0].x) == 2
     assert fig.layout.yaxis.scaleanchor == "x"
     payload = fig.to_json()
     assert (
@@ -107,8 +108,8 @@ def test_atlas_is_one_coordinate_trace_without_remote_assets():
     )
 
 
-def test_reference_chart_converts_micrograms_before_drawing_limit():
-    data = focused().iloc[:1].copy()
+def test_reference_chart_converts_micrograms_before_drawing_limit(observation_dataset):
+    data = focused(observation_dataset).iloc[:1].copy()
     data["unit_normalized"] = "µg/L"
     data["value_numeric"] = 2000
     fig = reference_readings(compare(data, 2), "BOD")
